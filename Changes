@@ -1,5 +1,8 @@
 {{$NEXT}}
 
+- Removed Test::Spelling from this module's prereqs.
+
+
 0.01     2012-02-06
 
 - First release upon an unsuspecting world.
