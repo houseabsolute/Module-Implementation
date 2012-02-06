@@ -42,7 +42,7 @@ sub _build_loader {
             *{ $package . '::_implementation' } = $impl_sub;
         }
 
-        return;
+        return $loaded;
     };
 }
 
@@ -196,8 +196,6 @@ I recommend that you I<do not> call this loader in an C<import()> sub. If a
 caller explicitly requests no imports, your C<import()> sub will not be run at
 all, which can cause weird breakage.
 
-Instead, I recommend calling this loader in a C<BEGIN> block like you see above.
-
 =head1 HOW THE IMPLEMENTATION LOADER WORKS
 
 The implementation loader works like this ...
@@ -236,3 +234,5 @@ exception.
 If an implementation is loaded successfully, the loader creates an
 C<_implementation()> subroutine in the package that created the loader. This
 lets you introspect the implementation for tests and other internal use.
+
+The loader returns the name of the package it loaded.
