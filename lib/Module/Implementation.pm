@@ -74,18 +74,18 @@ sub _load_implementation {
     else {
         my $err;
         for my $possible ( @{$implementations} ) {
-            my $loaded = "${package}::$possible";
+            my $load = "${package}::$possible";
 
             my $ok;
             try {
-                require_module($loaded);
+                require_module($load);
                 $ok = 1;
             }
             catch {
                 $err .= $_;
             };
 
-            return ( $possible, $loaded ) if $ok;
+            return ( $possible, $load ) if $ok;
         }
 
         require Carp;
