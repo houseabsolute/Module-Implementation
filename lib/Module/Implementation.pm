@@ -207,9 +207,14 @@ So in our L</SYNOPSIS> example, the corresponding C<%ENV> key would be
 C<FOO_BAR_IMPLEMENTATION>.
 
 If this is set, then the loader will B<only> try to load this one
-implementation. If this one implementation fails to load then loader throws an
-error. This is useful for testing. You can request a specific implementation
-in a test file by writing something like this:
+implementation.
+
+If the env var requests an implementation which doesn't match one of the
+implementations specified when the loader was created, an error is thrown.
+
+If this one implementation fails to load then loader throws an error. This is
+useful for testing. You can request a specific implementation in a test file
+by writing something like this:
 
   BEGIN { $ENV{FOO_BAR_IMPLEMENTATION} = 'XS' }
   use Foo::Bar;
