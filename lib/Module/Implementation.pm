@@ -6,16 +6,6 @@ use warnings;
 use Module::Runtime 0.011 qw( require_module );
 use Try::Tiny;
 
-sub setup_import_sub {
-    my $caller = caller();
-
-    my $loader = _build_loader( $caller, @_ );
-    no strict 'refs';
-    *{ $caller . '::import' } = $loader;
-
-    return;
-}
-
 sub build_loader_sub {
     my $caller = caller();
 
@@ -133,3 +123,107 @@ sub _copy_symbols {
 }
 
 1;
+
+# ABSTRACT: Loads one of several alternate underlying implementations for a module
+
+__END__
+
+=head1 SYNOPSIS
+
+  package Foo::Bar;
+
+  use Module::Implementation;
+
+  BEGIN {
+      my $loader = Module::Implementation::build_loader_sub(
+          implementations => [ 'XS',  'PurePerl' ],
+          symbols         => [ 'run', 'check' ],
+      );
+
+      $loader->();
+  }
+
+  package Consumer;
+
+  # loads the first viable implementation
+  use Foo::Bar;
+
+=head1 DESCRIPTION
+
+This module abstracts out the process of choosing one of several underlying
+implementations for a module. This can be used to provide XS and pure Perl
+implementations of a module, or it could be used to load an implementation for
+a given OS or any other case of needing to provide multiple implementations.
+
+=head1 API
+
+This module provides one subroutine, C<build_loader_sub()>, which is not
+exported. It takes the following arguments.
+
+=over 4
+
+=item * implementations
+
+This should be an array reference of implementation names. Each name should
+correspond to a module in the caller's namespace.
+
+In other words, using the example in the L</SYNOPSIS>, this module will look
+for the C<Foo::Bar::XS> and C<Foo::Bar::PurePerl> modules will be installed
+
+This argument is required.
+
+=item * symbols
+
+A list of symbols to copy from the implementation package to the calling
+package.
+
+These can be prefixed with a variable type: C<$>, C<@>, C<%>, C<&>, or
+C<*)>. If no prefix is given, the symbol is assumed to be a subroutine.
+
+This argument is optional.
+
+=back
+
+This subroutine I<returns> the implementation loader as a sub reference.
+
+It is up to you to call this loader sub in your code.
+
+I recommend that you I<do not> call this loader in an C<import()> sub. If a
+caller explicitly requests no imports, your C<import()> sub will not be run at
+all, which can cause weird breakage.
+
+Instead, I recommend calling this loader in a C<BEGIN> block like you see above.
+
+=head1 HOW THE IMPLEMENTATION LOADER WORKS
+
+The implementation loader works like this ...
+
+First, it checks for an C<%ENV> var specifying the implementation to load. The
+env var is based on the package name which loads the implementations. The
+C<::> package separator is replaced with C<_>, and made entirely
+upper-case. Finally, we append "_IMPLEMENTATION" to this name.
+
+So in our L</SYNOPSIS> example, the corresponding C<%ENV> key would be
+C<FOO_BAR_IMPLEMENTATION>.
+
+If this is set, then the loader will B<only> try to load this one
+implementation. If this one implementation fails to load then loader throws an
+error. This is useful for testing. You can request a specific implementation
+in a test file by writing something like this:
+
+  BEGIN { $ENV{FOO_BAR_IMPLEMENTATION} = 'XS' }
+  use Foo::Bar;
+
+If the environment variable is I<not> set, then the loader simply tries the
+implementations originally passed to C<Module::Implementation>. The
+implementations are tried in the order in which they were originally passed.
+
+The loader will use the first implementation that loads without an error. It
+will copy any requested symbols from this implementation.
+
+If none of the implementations can be loaded, then the loader throws an
+exception.
+
+If an implementation is loaded successfully, the loader creates an
+C<_implementation()> subroutine in the package that created the loader. This
+lets you introspect the implementation for tests and other internal use.
