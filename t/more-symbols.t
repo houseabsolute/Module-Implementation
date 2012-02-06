@@ -12,12 +12,12 @@ use Test::More 0.88;
     use lib 't/lib';
 
     use Module::Implementation;
-    Module::Implementation::setup_import_sub(
+    my $loader = Module::Implementation::build_loader_sub(
         implementations => [ 'Impl1', 'Impl2' ],
         symbols => [qw( return_42 &return_package $SCALAR @ARRAY %HASH )],
     );
 
-    __PACKAGE__->import();
+    $loader->();
 }
 
 {

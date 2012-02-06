@@ -13,7 +13,7 @@ use Test::Fatal;
     use lib 't/lib';
 
     use Module::Implementation;
-    Module::Implementation::setup_import_sub(
+    my $loader = Module::Implementation::build_loader_sub(
         implementations => [ 'ImplFails1', 'Impl1' ],
         symbols         => [qw( return_42 )],
     );
@@ -21,7 +21,7 @@ use Test::Fatal;
     $ENV{T_IMPLEMENTATION} = 'ImplFails1';
 
     ::like(
-        ::exception{ __PACKAGE__->import() },
+        ::exception{ $loader->() },
         qr/Could not load T::ImplFails1/,
         'Got an exception when implementation requested in env value fails to load'
     );

@@ -13,13 +13,13 @@ use Test::Fatal;
     use lib 't/lib';
 
     use Module::Implementation;
-    Module::Implementation::setup_import_sub(
+    my $loader = Module::Implementation::build_loader_sub(
         implementations => [ 'ImplFails1', 'ImplFails2' ],
         symbols         => [qw( return_42 )],
     );
 
     ::like(
-        ::exception{ __PACKAGE__->import() },
+        ::exception{ $loader->() },
         qr/Could not find a suitable T implementation/,
         'Got an exception when all implementations fail to load'
     );
