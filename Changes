@@ -1,5 +1,7 @@
 {{$NEXT}}
 
+0.02     2012-02-06
+
 - Removed Test::Spelling from this module's prereqs.
 
 
