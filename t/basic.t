@@ -17,7 +17,7 @@ use Test::More 0.88;
         symbols         => ['return_42'],
     );
 
-    $loader->();
+    ::is( $loader->(), 'T::Impl1', 'loader return loaded package name' );
 }
 
 {
