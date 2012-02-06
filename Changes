@@ -1,5 +1,7 @@
 {{$NEXT}}
 
+0.03     2012-02-06
+
 - The generated loader sub now returns the name of the package it loaded.
 
 
