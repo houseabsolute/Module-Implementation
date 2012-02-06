@@ -44,4 +44,4 @@ use Test::More 0.88;
     );
 }
 
-done_testing;
+done_testing();

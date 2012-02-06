@@ -25,4 +25,4 @@ use Test::More 0.88;
     ok( !T->can('return_package'), 'T package has a return_package sub' );
 }
 
-done_testing;
+done_testing();

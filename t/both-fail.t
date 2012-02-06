@@ -25,4 +25,4 @@ use Test::Fatal;
     );
 }
 
-done_testing;
+done_testing();

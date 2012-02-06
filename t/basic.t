@@ -30,4 +30,4 @@ use Test::More 0.88;
     is( T::_implementation(), 'Impl1', 'T::_implementation returns default implementation' );
 }
 
-done_testing;
+done_testing();
