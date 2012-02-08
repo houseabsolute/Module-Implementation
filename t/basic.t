@@ -27,7 +27,11 @@ use Test::More 0.88;
         'T package does not have return_package sub - only copied requested symbols'
     );
     is( T::return_42(), 42, 'T::return_42 work as expected' );
-    is( T::_implementation(), 'Impl1', 'T::_implementation returns default implementation' );
+    is(
+        Module::Implementation::implementation_for('T'),
+        'Impl1',
+        'T::_implementation returns default implementation'
+    );
 }
 
 done_testing();

@@ -33,7 +33,11 @@ taint_checking_ok();
 }
 
 {
-    is( T::_implementation(), 'Impl2', 'T::_implementation returns implementation set in ENV' );
+    is(
+        Module::Implementation::implementation_for('T'),
+        'Impl2',
+        'T::_implementation returns implementation set in ENV'
+    );
 }
 
 done_testing();

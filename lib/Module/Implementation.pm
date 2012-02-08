@@ -6,6 +6,8 @@ use warnings;
 use Module::Runtime 0.011 qw( require_module );
 use Try::Tiny;
 
+my %Implementation;
+
 sub build_loader_sub {
     my $caller = caller();
 
@@ -31,19 +33,18 @@ sub _build_loader {
             \@implementations,
         );
 
+        $Implementation{$package} = $implementation;
+
         _copy_symbols( $loaded, $package, \@symbols );
-
-        my $impl_sub = sub {
-            return $implementation;
-        };
-
-        {
-            no strict 'refs';
-            *{ $package . '::_implementation' } = $impl_sub;
-        }
 
         return $loaded;
     };
+}
+
+sub implementation_for {
+    my $package = shift;
+
+    return $Implementation{$package};
 }
 
 sub _load_implementation {
@@ -161,8 +162,11 @@ something like a plugin system, not this module.
 
 =head1 API
 
-This module provides one subroutine, C<build_loader_sub()>, which is not
-exported. It takes the following arguments.
+This module provides two subroutines, neither of which are exported.
+
+=head2 Module::Implementation::<build_loader_sub(...)
+
+This subroutine takes the following arguments.
 
 =over 4
 
@@ -195,6 +199,13 @@ It is up to you to call this loader sub in your code.
 I recommend that you I<do not> call this loader in an C<import()> sub. If a
 caller explicitly requests no imports, your C<import()> sub will not be run at
 all, which can cause weird breakage.
+
+=head2 Module::Implementation::implementation_for($package)
+
+Given a package name, this subroutine returns the implementation that was
+loaded for the package. This is not a full package name, just the suffix that
+identifies the implementation. For the L</SYNOPSIS> example, this would return
+"XS" or "PurePerl".
 
 =head1 HOW THE IMPLEMENTATION LOADER WORKS
 
@@ -230,9 +241,5 @@ will copy any requested symbols from this implementation.
 
 If none of the implementations can be loaded, then the loader throws an
 exception.
-
-If an implementation is loaded successfully, the loader creates an
-C<_implementation()> subroutine in the package that created the loader. This
-lets you introspect the implementation for tests and other internal use.
 
 The loader returns the name of the package it loaded.

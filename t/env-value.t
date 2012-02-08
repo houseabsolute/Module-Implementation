@@ -29,7 +29,11 @@ use Test::More 0.88;
         'T package does not have return_package sub - only copied requested symbols'
     );
     is( T::return_42(), 42, 'T::return_42 work as expected' );
-    is( T::_implementation(), 'Impl2', 'T::_implementation returns implementation set in ENV' );
+    is(
+        Module::Implementation::implementation_for('T'),
+        'Impl2',
+        'T::_implementation returns implementation set in ENV'
+    );
 }
 
 done_testing();
