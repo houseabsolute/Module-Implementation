@@ -204,8 +204,9 @@ all, which can cause weird breakage.
 
 Given a package name, this subroutine returns the implementation that was
 loaded for the package. This is not a full package name, just the suffix that
-identifies the implementation. For the L</SYNOPSIS> example, this would return
-"XS" or "PurePerl".
+identifies the implementation. For the L</SYNOPSIS> example, this subroutine
+would be called as C<Module::Implementation::implementation_for('Foo::Bar')>,
+and it would return "XS" or "PurePerl".
 
 =head1 HOW THE IMPLEMENTATION LOADER WORKS
 
