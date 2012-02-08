@@ -1,5 +1,7 @@
 {{$NEXT}}
 
+0.04     2012-02-08
+
 - This module no longer installs an _implementation() subroutine in
   callers. Instead, you can call
   Module::Implementation::implementation_for($package) to get the
