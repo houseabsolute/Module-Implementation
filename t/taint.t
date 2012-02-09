@@ -3,9 +3,12 @@
 use strict;
 use warnings;
 
+use Test::Requires => {
+    'Test::Taint' => '0',
+};
+
 use Test::More 0.88;
 use Test::Fatal;
-use Test::Taint;
 
 taint_checking_ok();
 
