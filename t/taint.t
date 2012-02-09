@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::Requires => {
+use Test::Requires {
     'Test::Taint' => '0',
 };
 
