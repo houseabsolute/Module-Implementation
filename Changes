@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+- Make Test::Taint an optional dependency. This module requires XS, and
+  requiring a compiler for Module::Implementation defeats its purpose.
+
+
 0.04     2012-02-08
 
 - This module no longer installs an _implementation() subroutine in
