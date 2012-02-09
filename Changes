@@ -1,7 +1,8 @@
 {{$NEXT}}
 
 - Make Test::Taint an optional dependency. This module requires XS, and
-  requiring a compiler for Module::Implementation defeats its purpose.
+  requiring a compiler for Module::Implementation defeats its
+  purpose. Reported by Peter Rabbitson. RT #74817.
 
 
 0.04     2012-02-08
