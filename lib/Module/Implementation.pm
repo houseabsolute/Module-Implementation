@@ -3,7 +3,7 @@ package Module::Implementation;
 use strict;
 use warnings;
 
-use Module::Runtime 0.011 qw( require_module );
+use Module::Runtime 0.012 qw( require_module );
 use Try::Tiny;
 
 my %Implementation;
