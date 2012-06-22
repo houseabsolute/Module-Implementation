@@ -83,7 +83,7 @@ sub _load_implementation {
                 $ok = 1;
             }
             catch {
-                $err .= $_;
+                $err .= $_ if defined $_;
             };
 
             return ( $possible, $load ) if $ok;
