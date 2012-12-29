@@ -176,7 +176,7 @@ This should be an array reference of implementation names. Each name should
 correspond to a module in the caller's namespace.
 
 In other words, using the example in the L</SYNOPSIS>, this module will look
-for the C<Foo::Bar::XS> and C<Foo::Bar::PurePerl> modules will be installed
+for the C<Foo::Bar::XS> and C<Foo::Bar::PurePerl> modules.
 
 This argument is required.
 
