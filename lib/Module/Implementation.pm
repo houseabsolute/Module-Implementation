@@ -164,7 +164,7 @@ something like a plugin system, not this module.
 
 This module provides two subroutines, neither of which are exported.
 
-=head2 Module::Implementation::<build_loader_sub(...)
+=head2 Module::Implementation::build_loader_sub(...)
 
 This subroutine takes the following arguments.
 
