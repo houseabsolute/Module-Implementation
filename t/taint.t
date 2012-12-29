@@ -3,12 +3,13 @@
 use strict;
 use warnings;
 
-use Test::Requires {
-    'Test::Taint' => '0',
-};
-
 use Test::More 0.88;
 use Test::Fatal;
+
+BEGIN {
+    eval "use Test::Taint; 1"
+        or plan skip_all => "Test requires module 'Test::Taint' but it's not found"
+}
 
 taint_checking_ok();
 
