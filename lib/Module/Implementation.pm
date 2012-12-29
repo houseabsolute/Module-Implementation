@@ -62,12 +62,9 @@ sub _load_implementation {
         # this value because the value was one of our known implementations.
         ($requested) = $requested =~ /^(.+)$/;
 
-        try {
-            require_module($requested);
-        }
-        catch {
+        if (my $exc = _module_load_exception($requested)) {
             require Carp;
-            Carp::croak("Could not load $requested: $_");
+            Carp::croak("Could not load $requested: $exc");
         };
 
         return ( $env_value, $requested );
@@ -77,29 +74,50 @@ sub _load_implementation {
         for my $possible ( @{$implementations} ) {
             my $try = "${package}::$possible";
 
-            my $ok;
-            try {
-                require_module($try);
-                $ok = 1;
-            }
-            catch {
-                $err .= $_ if defined $_;
-            };
-
-            return ( $possible, $try ) if $ok;
+            $err .= "\n" . (
+                _module_load_exception($try)
+                    or
+                return ( $possible, $try )
+            );
         }
 
         require Carp;
-        if ( defined $err && length $err ) {
-            Carp::croak(
-                "Could not find a suitable $package implementation: $err");
+        Carp::croak(
+            "Could not find a suitable $package implementation: $err"
+        );
+    }
+}
+
+sub _module_load_exception {
+    my $mod = shift;
+    try {
+        require_module($mod);
+        return;
+    }
+    catch {
+        my $internal_error;
+
+        # weird pathological cases, originally claimed here:
+        # http://git.urth.org/cgit.cgi/Module-Implementation.git/commit/?id=bbaa0bac
+        if (! defined $_) {
+            $internal_error = 'left $@ undefined';
+        }
+        elsif (! $_) {
+            $internal_error = "threw the false exception '$_'";
         }
         else {
-            Carp::croak(
-                'Module::Runtime failed to load a module but did not throw a real error. This should never happen. Something is very broken'
-            );
+            return $_;
         }
-    }
+
+        # we had an internal error if we got this far
+        return sprintf (
+            'Module::Runtime::require_module() failed to load %s but %s. '
+          . 'Theoretically this can not happen, and is a likely indication '
+          . 'of a bug in Module::Runtime. Please contact the author of '
+          . 'either Module::Implementation or Module::Runtime to investigate '
+          . 'this further.'
+        , $mod, $internal_error );
+    };
 }
 
 sub _copy_symbols {
