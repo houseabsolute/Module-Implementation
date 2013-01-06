@@ -26,7 +26,9 @@ taint_checking_ok();
         symbols         => ['return_42'],
     );
 
-    $ENV{T_IMPLEMENTATION} = 'Impl2';
+    ::taint( $ENV{T_IMPLEMENTATION} = 'Impl2' );
+
+    ::tainted_ok( $ENV{T_IMPLEMENTATION}, '$ENV{T_IMPLEMENTATION} is tainted' );
 
     ::is(
         ::exception{ $loader->() },
