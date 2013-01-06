@@ -90,8 +90,15 @@ sub _load_implementation {
         }
 
         require Carp;
-        Carp::croak(
-            "Could not find a suitable $package implementation: $err");
+        if ( defined $err && length $err ) {
+            Carp::croak(
+                "Could not find a suitable $package implementation: $err");
+        }
+        else {
+            Carp::croak(
+                'Module::Runtime failed to load a module but did not throw a real error. This should never happen. Something is very broken'
+            );
+        }
     }
 }
 
