@@ -56,37 +56,37 @@ sub _load_implementation {
         die "$env_value is not a valid implementation for $package"
             unless grep { $_ eq $env_value } @{$implementations};
 
-        my $loaded = "${package}::$env_value";
+        my $requested = "${package}::$env_value";
 
         # Values from the %ENV hash are tainted. We know it's safe to untaint
         # this value because the value was one of our known implementations.
-        ($loaded) = $loaded =~ /^(.+)$/;
+        ($requested) = $requested =~ /^(.+)$/;
 
         try {
-            require_module($loaded);
+            require_module($requested);
         }
         catch {
             require Carp;
-            Carp::croak("Could not load $loaded: $_");
+            Carp::croak("Could not load $requested: $_");
         };
 
-        return ( $env_value, $loaded );
+        return ( $env_value, $requested );
     }
     else {
         my $err;
         for my $possible ( @{$implementations} ) {
-            my $load = "${package}::$possible";
+            my $try = "${package}::$possible";
 
             my $ok;
             try {
-                require_module($load);
+                require_module($try);
                 $ok = 1;
             }
             catch {
                 $err .= $_ if defined $_;
             };
 
-            return ( $possible, $load ) if $ok;
+            return ( $possible, $try ) if $ok;
         }
 
         require Carp;
