@@ -6,6 +6,7 @@
 - This module now tries to load all available implementations, and
   checks that all requested CODE, ARRAY and HASH imports are available
   in all implementations.
+- Declare explicit dependency on Test::Fatal 0.006 (RT#76809)
 
 0.07     2013-07-14
 
