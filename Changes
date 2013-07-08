@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+- This module now tries to load all available implementations, and
+  checks that all requested CODE, ARRAY and HASH imports are available
+  in all implementations.
+
 0.06     2012-02-12
 
 - Require Module::Runtime 0.012, which has a number of useful bug fixes.

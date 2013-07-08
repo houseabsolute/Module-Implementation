@@ -27,7 +27,7 @@ sub _build_loader {
     $env_var .= '_IMPLEMENTATION';
 
     return sub {
-        my ( $implementation, $loaded ) = _load_implementation(
+        my ( $implementation, $found ) = _load_implementation(
             $package,
             $ENV{$env_var},
             \@implementations,
@@ -35,9 +35,9 @@ sub _build_loader {
 
         $Implementation{$package} = $implementation;
 
-        _copy_symbols( $loaded, $package, \@symbols );
+        _copy_symbols( $found->{$implementation}, $package, \@symbols, $found );
 
-        return $loaded;
+        return $found->{$implementation};
     };
 }
 
@@ -66,19 +66,24 @@ sub _load_implementation {
             _croak("Could not load $requested: $exc");
         };
 
-        return ( $env_value, $requested );
+        return ( $env_value, { $env_value => $requested } );
     }
     else {
-        my $err;
+        my ($err, $first_choice, $found);
+
         for my $possible ( @{$implementations} ) {
             my $try = "${package}::$possible";
 
-            $err .= "\n" . (
-                _module_load_exception($try)
-                    or
-                return ( $possible, $try )
-            );
+            if (my $exc = _module_load_exception($try)) {
+                $err .= "\n$exc";
+            }
+            else {
+                $first_choice = $possible unless defined $first_choice;
+                $found->{$possible} = $try;
+            }
         }
+
+        return ( $first_choice, $found ) if defined $first_choice;
 
         _croak(
             "Could not find a suitable $package implementation: $err"
@@ -118,10 +123,17 @@ sub _module_load_exception {
     };
 }
 
+my %globslot_check = (
+    '@' => 'ARRAY',
+    '%' => 'HASH',
+    '&' => 'CODE',
+);
+
 sub _copy_symbols {
     my $from_package = shift;
     my $to_package   = shift;
     my $symbols      = shift;
+    my $found        = shift;
 
     for my $sym ( @{$symbols} ) {
         my $type = $sym =~ s/^([\$\@\%\&\*])// ? $1 : '&';
@@ -132,6 +144,24 @@ sub _copy_symbols {
         {
             no strict 'refs';
             no warnings 'once';
+
+            if ( $globslot_check{$type} ) {
+
+                my %missing_in_implementation = map {
+                    ( defined *{"${_}::$sym"}{$globslot_check{$type}} )
+                      ? ()
+                      : ( $_ => 1 )
+                } values %$found;
+
+                _croak (
+                    "Can't copy nonexistent symbol $type$sym from $from_package to $to_package"
+                ) if $missing_in_implementation{$from_package};
+
+                _croak (
+                    "Symbol import mismatch - $type$sym does not exist in alternative implementation(s): "
+                  .  join ', ', sort keys %missing_in_implementation
+                ) if keys %missing_in_implementation;
+            }
 
             # Copied from Exporter
             *{$to}
