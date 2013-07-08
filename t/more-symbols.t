@@ -14,7 +14,7 @@ use Test::More 0.88;
     use Module::Implementation;
     my $loader = Module::Implementation::build_loader_sub(
         implementations => [ 'Impl1', 'Impl2' ],
-        symbols => [qw( return_42 &return_package $SCALAR @ARRAY %HASH )],
+        symbols => [qw( return_42 &return_package $SCALAR @ARRAY %HASH *MULTI )],
     );
 
     $loader->();
@@ -42,6 +42,20 @@ use Test::More 0.88;
         { key => 'val' },
         '%T::HASH was copied from implementation'
     );
+
+    for my $slot (qw( IO ARRAY HASH )) {
+        is(
+            *T::MULTI{$slot},
+            *T::Impl1::MULTI{$slot},
+            "$slot slot properly copied on import",
+        );
+    }
+
+    is( fileno(T::MULTI), fileno(T::Impl1::MULTI), 'MULTI IO slot imported' );
+    is( \@T::MULTI, \@T::Impl1::MULTI, 'MULTI fresh ARRAY slot aliased' );
+    is( \%T::MULTI, \%T::Impl1::MULTI, 'MULTI fresh HASH slot aliased' );
+
+    ok( ! T->can('MULTI'),  'MULTI CODE slot not autovivified' );
 }
 
 done_testing();
