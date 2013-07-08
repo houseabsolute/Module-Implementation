@@ -11,6 +11,10 @@ sub return_package {
     return __PACKAGE__;
 }
 
+sub only_in_impl1 {
+    return 69;
+}
+
 our $SCALAR = 42;
 our @ARRAY  = ( 1, 2, 3 );
 our %HASH   = ( key => 'val' );
