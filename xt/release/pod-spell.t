@@ -1,7 +1,15 @@
 use strict;
 use warnings;
 
-use Test::Spelling;
+use Test::More;
+
+BEGIN {
+    eval "use Test::Spelling; 1" or (
+        $ENV{RELEASE_TESTING}
+            ? die ('Required release-testing module Test::Spelling is missing')
+            : plan skip_all => 'Test::Spelling required for this test'
+    );
+}
 
 my @stopwords;
 for (<DATA>) {
@@ -24,3 +32,4 @@ PurePerl
 Rolsky
 env
 namespace
+namespaces
