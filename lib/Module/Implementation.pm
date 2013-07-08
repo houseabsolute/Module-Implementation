@@ -53,7 +53,7 @@ sub _load_implementation {
     my $implementations = shift;
 
     if ($env_value) {
-        die "$env_value is not a valid implementation for $package"
+        _croak( "$env_value is not a valid implementation for $package" )
             unless grep { $_ eq $env_value } @{$implementations};
 
         my $requested = "${package}::$env_value";
@@ -63,8 +63,7 @@ sub _load_implementation {
         ($requested) = $requested =~ /^(.+)$/;
 
         if (my $exc = _module_load_exception($requested)) {
-            require Carp;
-            Carp::croak("Could not load $requested: $exc");
+            _croak("Could not load $requested: $exc");
         };
 
         return ( $env_value, $requested );
@@ -81,8 +80,7 @@ sub _load_implementation {
             );
         }
 
-        require Carp;
-        Carp::croak(
+        _croak(
             "Could not find a suitable $package implementation: $err"
         );
     }
@@ -142,11 +140,18 @@ sub _copy_symbols {
                 : $type eq '@' ? \@{$from}
                 : $type eq '%' ? \%{$from}
                 : $type eq '*' ? *{$from}
-                : die
-                "Can't copy symbol from $from_package to $to_package: $type$sym";
+                : _croak(
+                    "Can't copy symbol from $from_package to $to_package: $type$sym"
+                );
         }
     }
 }
+
+sub _croak {
+    require Carp;
+    Carp::croak(@_);
+}
+
 
 1;
 
