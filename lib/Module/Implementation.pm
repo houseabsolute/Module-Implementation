@@ -135,7 +135,22 @@ sub _copy_symbols {
     my $symbols      = shift;
     my $found        = shift;
 
-    for my $sym ( @{$symbols} ) {
+    my %symbols;
+    for my $sym (@$symbols) {
+        if (ref $sym eq 'Regexp') {
+            for my $mod (values %$found) {
+                no strict 'refs';
+                $symbols{$_}++ for grep {
+                    $_ =~ $sym and defined *{"${mod}::$_"}{CODE}
+                } keys %{"${mod}::"}
+            }
+        }
+        else {
+            $symbols{$sym}++;
+        }
+    }
+
+    for my $sym ( keys %symbols ) {
         my $type = $sym =~ s/^([\$\@\%\&\*])// ? $1 : '&';
 
         my $from = "${from_package}::$sym";
@@ -198,7 +213,7 @@ __END__
   BEGIN {
       my $loader = Module::Implementation::build_loader_sub(
           implementations => [ 'XS',  'PurePerl' ],
-          symbols         => [ 'run', 'check' ],
+          symbols         => [ 'run', 'check', qr/^start_/ ],
       );
 
       $loader->();
@@ -246,7 +261,12 @@ A list of symbols to copy from the implementation package to the calling
 package.
 
 These can be prefixed with a variable type: C<$>, C<@>, C<%>, C<&>, or
-C<*)>. If no prefix is given, the symbol is assumed to be a subroutine.
+C<*)>. If no prefix is given, the symbol is assumed to be a subroutine (C<&>).
+
+You can also specify one or several regular expressions (via C<qr//>). In
+this case all implementation namespaces will be scanned for B<subroutine
+names> matching at least one of the regexes, and matches will be imported
+as if they were listed explicitly.
 
 This argument is optional.
 

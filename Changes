@@ -1,5 +1,8 @@
 {{$NEXT}}
 
+- In addition to explicit specification of symbol lists, this module
+  now accepts regular expressions allowing wildcard import of functions
+  into the main module (RT#82327)
 - This module now tries to load all available implementations, and
   checks that all requested CODE, ARRAY and HASH imports are available
   in all implementations.

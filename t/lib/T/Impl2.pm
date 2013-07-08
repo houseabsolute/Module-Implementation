@@ -18,4 +18,14 @@ our %HASH   = ( key => 'val' );
 open MULTI, '>&STDOUT' or die 'Unable to dup STDOUT';
 our (%MULTI, @MULTI);
 
+sub perl_5_6 { 5.6 }
+sub perl_5_8 { 5.8 }
+sub perl_5_10 { 5.10 }
+sub perl_5_14 { 5.14 }
+sub perl_5_16 { 5.16 }
+
+our $perl_5_6 = 5.6;
+our @perl_5_6 = ( 5.6 );
+our %perl_5_6 = ( perl => 5.6 );
+
 1;
