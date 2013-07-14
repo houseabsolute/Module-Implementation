@@ -8,7 +8,7 @@ use Test::Requires {
 };
 
 use Test::More 0.88;
-use Test::Fatal;
+use Test::Fatal 0.006;
 
 taint_checking_ok();
 
