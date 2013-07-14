@@ -19,7 +19,7 @@ use Test::Fatal 0.006;
     );
 
     ::like(
-        ::exception{ $loader->() },
+        ::exception { $loader->() },
         qr/\QSymbol import mismatch - &only_in_impl1 does not exist in alternative implementation(s): T::Impl2/,
         'Got an exception when requested symbol is not present in all implementations'
     );

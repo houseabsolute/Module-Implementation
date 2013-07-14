@@ -21,7 +21,7 @@ use Test::Fatal 0.006;
     $ENV{T_IMPLEMENTATION} = 'ImplFails1';
 
     ::like(
-        ::exception{ $loader->() },
+        ::exception { $loader->() },
         qr/Could not load T::ImplFails1/,
         'Got an exception when implementation requested in env value fails to load'
     );
