@@ -35,7 +35,12 @@ sub _build_loader {
 
         $Implementation{$package} = $implementation;
 
-        _copy_symbols( $found->{$implementation}, $package, \@symbols, $found );
+        _copy_symbols(
+            $found->{$implementation},
+            $package,
+            \@symbols,
+            $found
+        );
 
         return $found->{$implementation};
     };
@@ -53,7 +58,7 @@ sub _load_implementation {
     my $implementations = shift;
 
     if ($env_value) {
-        _croak( "$env_value is not a valid implementation for $package" )
+        _croak("$env_value is not a valid implementation for $package")
             unless grep { $_ eq $env_value } @{$implementations};
 
         my $requested = "${package}::$env_value";
@@ -62,19 +67,19 @@ sub _load_implementation {
         # this value because the value was one of our known implementations.
         ($requested) = $requested =~ /^(.+)$/;
 
-        if (my $exc = _module_load_exception($requested)) {
+        if ( my $exc = _module_load_exception($requested) ) {
             _croak("Could not load $requested: $exc");
-        };
+        }
 
         return ( $env_value, { $env_value => $requested } );
     }
     else {
-        my ($err, $first_choice, $found);
+        my ( $err, $first_choice, $found );
 
         for my $possible ( @{$implementations} ) {
             my $try = "${package}::$possible";
 
-            if (my $exc = _module_load_exception($try)) {
+            if ( my $exc = _module_load_exception($try) ) {
                 $err .= "\n$exc";
             }
             else {
@@ -85,109 +90,117 @@ sub _load_implementation {
 
         return ( $first_choice, $found ) if defined $first_choice;
 
-        _croak(
-            "Could not find a suitable $package implementation: $err"
-        );
+        _croak("Could not find a suitable $package implementation: $err");
     }
 }
 
-sub _module_load_exception {
-    my $mod = shift;
-    try {
-        require_module($mod);
-        return;
-    }
-    catch {
-        my $internal_error;
+{
+    my $bizarre_error
+        = 'Module::Runtime::require_module() failed to load %s but %s. '
+        . 'Theoretically this cannot happen, and is a likely indication '
+        . 'of a bug in Module::Runtime. Please contact the author of '
+        . 'either Module::Implementation or Module::Runtime to investigate '
+        . 'this further.';
 
-        # weird pathological cases, originally claimed here:
-        # http://git.urth.org/cgit.cgi/Module-Implementation.git/commit/?id=bbaa0bac
-        if (! defined $_) {
-            $internal_error = 'left $@ undefined';
+    sub _module_load_exception {
+        my $mod = shift;
+
+        my $err;
+        try {
+            require_module($mod);
         }
-        elsif (! $_) {
-            $internal_error = "threw the false exception '$_'";
-        }
-        else {
-            return $_;
-        }
-
-        # we had an internal error if we got this far
-        return sprintf (
-            'Module::Runtime::require_module() failed to load %s but %s. '
-          . 'Theoretically this can not happen, and is a likely indication '
-          . 'of a bug in Module::Runtime. Please contact the author of '
-          . 'either Module::Implementation or Module::Runtime to investigate '
-          . 'this further.'
-        , $mod, $internal_error );
-    };
-}
-
-my %globslot_check = (
-    '@' => 'ARRAY',
-    '%' => 'HASH',
-    '&' => 'CODE',
-);
-
-sub _copy_symbols {
-    my $from_package = shift;
-    my $to_package   = shift;
-    my $symbols      = shift;
-    my $found        = shift;
-
-    my %symbols;
-    for my $sym (@$symbols) {
-        if (ref $sym eq 'Regexp') {
-            for my $mod (values %$found) {
-                no strict 'refs';
-                $symbols{$_}++ for grep {
-                    $_ =~ $sym and defined *{"${mod}::$_"}{CODE}
-                } keys %{"${mod}::"}
+        catch {
+            # weird pathological cases, originally claimed here:
+            # http://git.urth.org/cgit.cgi/Module-Implementation.git/commit/?id=bbaa0bac
+            if ( !defined $_ ) {
+                $err = sprintf( $bizarre_error, $mod, 'left $@ undefined' );
             }
-        }
-        else {
-            $symbols{$sym}++;
-        }
-    }
-
-    for my $sym ( keys %symbols ) {
-        my $type = $sym =~ s/^([\$\@\%\&\*])// ? $1 : '&';
-
-        my $from = "${from_package}::$sym";
-        my $to   = "${to_package}::$sym";
-
-        {
-            no strict 'refs';
-            no warnings 'once';
-
-            if ( $globslot_check{$type} ) {
-
-                my %missing_in_implementation = map {
-                    ( defined *{"${_}::$sym"}{$globslot_check{$type}} )
-                      ? ()
-                      : ( $_ => 1 )
-                } values %$found;
-
-                _croak (
-                    "Can't copy nonexistent symbol $type$sym from $from_package to $to_package"
-                ) if $missing_in_implementation{$from_package};
-
-                _croak (
-                    "Symbol import mismatch - $type$sym does not exist in alternative implementation(s): "
-                  .  join ', ', sort keys %missing_in_implementation
-                ) if keys %missing_in_implementation;
-            }
-
-            # Copied from Exporter
-            *{$to}
-                = $type eq '&' ? \&{$from}
-                : $type eq '$' ? \${$from}
-                : $type eq '@' ? \@{$from}
-                : $type eq '%' ? \%{$from}
-                : $type eq '*' ? *{$from}
-                : _croak(
-                    "Can't copy symbol from $from_package to $to_package: $type$sym"
+            elsif ( !$_ ) {
+                $err = sprintf(
+                    $bizarre_error, $mod,
+                    "threw the false exception '$_'"
                 );
+            }
+            else {
+                $err = $_;
+            }
+        };
+
+        return $err;
+    }
+}
+
+{
+    my %sigil_to_glob_key = (
+        '@' => 'ARRAY',
+        '%' => 'HASH',
+        '&' => 'CODE',
+    );
+
+    sub _copy_symbols {
+        my $from_package = shift;
+        my $to_package   = shift;
+        my $symbols      = shift;
+        my $found        = shift;
+
+        my %symbols;
+        for my $sym (@$symbols) {
+            if ( ref $sym eq 'Regexp' ) {
+                for my $mod ( values %$found ) {
+                    no strict 'refs';
+                    $symbols{$_}++
+                        for
+                        grep { $_ =~ $sym and defined *{"${mod}::$_"}{CODE} }
+                        keys %{"${mod}::"};
+                }
+            }
+            else {
+                $symbols{$sym}++;
+            }
+        }
+
+        for my $sym ( keys %symbols ) {
+            my $sigil = $sym =~ s/^([\$\@\%\&\*])// ? $1 : '&';
+
+            my $from = "${from_package}::$sym";
+            my $to   = "${to_package}::$sym";
+
+            {
+                no strict 'refs';
+                no warnings 'once';
+
+                if ( $sigil_to_glob_key{$sigil} ) {
+
+                    my %missing_in_implementation = map {
+                        (
+                            defined *{"${_}::$sym"}
+                                { $sigil_to_glob_key{$sigil} } )
+                            ? ()
+                            : ( $_ => 1 )
+                    } values %$found;
+
+                    _croak(
+                        "Can't copy nonexistent symbol $sigil$sym from $from_package to $to_package"
+                    ) if $missing_in_implementation{$from_package};
+
+                    _croak(
+                        "Symbol import mismatch - $sigil$sym does not exist in alternative implementation(s): "
+                            . join ', ',
+                        sort keys %missing_in_implementation
+                    ) if keys %missing_in_implementation;
+                }
+
+                # Copied from Exporter
+                *{$to}
+                    = $sigil eq '&' ? \&{$from}
+                    : $sigil eq '$' ? \${$from}
+                    : $sigil eq '@' ? \@{$from}
+                    : $sigil eq '%' ? \%{$from}
+                    : $sigil eq '*' ? *{$from}
+                    : _croak(
+                    "Can't copy symbol from $from_package to $to_package: $sigil$sym"
+                    );
+            }
         }
     }
 }
@@ -196,7 +209,6 @@ sub _croak {
     require Carp;
     Carp::croak(@_);
 }
-
 
 1;
 
@@ -263,10 +275,10 @@ package.
 These can be prefixed with a variable type: C<$>, C<@>, C<%>, C<&>, or
 C<*)>. If no prefix is given, the symbol is assumed to be a subroutine (C<&>).
 
-You can also specify one or several regular expressions (via C<qr//>). In
-this case all implementation namespaces will be scanned for B<subroutine
-names> matching at least one of the regexes, and matches will be imported
-as if they were listed explicitly.
+You can also specify one or more regular expressions (via C<qr//>). In this
+case all implementation namespaces will be scanned for B<subroutine names>
+matching at least one of the regexes, and matches will be imported as if they
+were listed explicitly.
 
 This argument is optional.
 
