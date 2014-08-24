@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+- Backed out the Sub::Name change in 0.08. It was pointed out to me by Graham
+  Knop that adding an XS dependency for a module that's often used to pick
+  between XS and non-XS implementations doesn't work so well.
+
+
 0.08     2014-08-24
 
 - Subroutines copied from an implementation package into the loading package

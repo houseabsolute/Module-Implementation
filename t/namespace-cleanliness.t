@@ -25,6 +25,9 @@ use Test::Requires {
 
 $INC{'T.pm'} = 1;
 
-namespaces_clean('T');
+{
+    local $TODO = q{Without Sub::Name there's no good way to avoid dirtiness};
+    namespaces_clean('T');
+}
 
 done_testing();

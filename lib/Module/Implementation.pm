@@ -4,7 +4,6 @@ use strict;
 use warnings;
 
 use Module::Runtime 0.012 qw( require_module );
-use Sub::Name qw( subname );
 use Try::Tiny;
 
 # This is needed for the benefit of Test::CleanNamespaces, which in turn loads
@@ -129,7 +128,7 @@ sub _copy_symbols {
 
             # Copied from Exporter
             *{$to}
-                = $type eq '&' ? subname( $to, \&{$from} )
+                = $type eq '&' ? \&{$from}
                 : $type eq '$' ? \${$from}
                 : $type eq '@' ? \@{$from}
                 : $type eq '%' ? \%{$from}
