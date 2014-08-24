@@ -1,5 +1,11 @@
 {{$NEXT}}
 
+- Subroutines copied from an implementation package into the loading package
+  are now renamed using Sub::Name. This causes them to be considered part of
+  the loading package, which is important for things like
+  namespace::autoclean. Reported by Karen Etheridge. RT #98097.
+
+
 0.07     2013-07-14
 
 - Require Test::Fatal 0.006+ to avoid test failures. Reported by Salve

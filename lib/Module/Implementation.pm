@@ -4,7 +4,17 @@ use strict;
 use warnings;
 
 use Module::Runtime 0.012 qw( require_module );
+use Sub::Name qw( subname );
 use Try::Tiny;
+
+# This is needed for the benefit of Test::CleanNamespaces, which in turn loads
+# Package::Stash, which in turn loads this module and expects a minimum
+# version.
+unless ( exists $Module::Implementation::{VERSION}
+    && ${ $Module::Implementation::{VERSION} } ) {
+
+    $Module::Implementation::{VERSION} = \42;
+}
 
 my %Implementation;
 
@@ -119,7 +129,7 @@ sub _copy_symbols {
 
             # Copied from Exporter
             *{$to}
-                = $type eq '&' ? \&{$from}
+                = $type eq '&' ? subname( $to, \&{$from} )
                 : $type eq '$' ? \${$from}
                 : $type eq '@' ? \@{$from}
                 : $type eq '%' ? \%{$from}
