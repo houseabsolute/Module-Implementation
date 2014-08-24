@@ -4,7 +4,7 @@ Module::Implementation - Loads one of several alternate underlying implementatio
 
 # VERSION
 
-version 0.08
+version 0.09
 
 # SYNOPSIS
 
