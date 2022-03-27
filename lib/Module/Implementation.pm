@@ -202,7 +202,7 @@ A list of symbols to copy from the implementation package to the calling
 package.
 
 These can be prefixed with a variable type: C<$>, C<@>, C<%>, C<&>, or
-C<*)>. If no prefix is given, the symbol is assumed to be a subroutine.
+C<*>. If no prefix is given, the symbol is assumed to be a subroutine.
 
 This argument is optional.
 
